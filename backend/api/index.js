@@ -89,29 +89,39 @@ let cachedConnection = null;
 
 async function connectToDatabase() {
   if (cachedConnection && mongoose.connection.readyState === 1) {
+    console.log('♻️  Reusing cached MongoDB connection');
     return cachedConnection;
   }
 
   try {
-    const connection = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/shardeumquest',
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        maxPoolSize: 5, // Smaller pool for serverless
-        serverSelectionTimeoutMS: 3000, // Shorter timeout for Vercel
-        socketTimeoutMS: 10000,
-        bufferCommands: false,
-        bufferMaxEntries: 0,
-        family: 4
-      }
-    );
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tip-dapp';
+    console.log('🔌 Attempting MongoDB connection...');
+    console.log('📍 MongoDB URI present:', !!process.env.MONGODB_URI);
+    console.log('🌐 Connection string preview:', mongoUri.substring(0, 50) + '...');
+    
+    const connection = await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      maxPoolSize: 5, // Smaller pool for serverless
+      serverSelectionTimeoutMS: 5000, // Increased timeout for Vercel
+      socketTimeoutMS: 15000, // Increased socket timeout
+      bufferCommands: false,
+      bufferMaxEntries: 0,
+      family: 4
+    });
 
     cachedConnection = connection;
-    console.log('✅ MongoDB connected (Vercel)');
+    console.log('✅ MongoDB connected successfully (Vercel)');
+    console.log('📊 Database:', mongoose.connection.name);
+    console.log('🏠 Host:', mongoose.connection.host);
     return connection;
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('❌ MongoDB connection failed:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      mongoUri: !!process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
+    });
     throw error;
   }
 }
