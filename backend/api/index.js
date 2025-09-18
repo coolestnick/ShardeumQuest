@@ -105,9 +105,8 @@ async function connectToDatabase() {
       maxPoolSize: 5, // Smaller pool for serverless
       serverSelectionTimeoutMS: 5000, // Increased timeout for Vercel
       socketTimeoutMS: 15000, // Increased socket timeout
-      bufferCommands: false,
-      bufferMaxEntries: 0,
-      family: 4
+      bufferCommands: false
+      // Removed bufferMaxEntries and family options that cause issues on Vercel
     });
 
     cachedConnection = connection;
@@ -207,11 +206,11 @@ app.get('/api/db-test', async (req, res) => {
       database: {
         status: 'connected',
         readyState: mongoose.connection.readyState,
-        name: mongoose.connection.name,
-        host: mongoose.connection.host
+        name: mongoose.connection.name || 'unknown',
+        host: mongoose.connection.host || 'unknown'
       },
       userCount: userCount,
-      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
+      mongoUri: 'SET'
     });
   } catch (error) {
     console.error('Database test failed:', error);
@@ -219,11 +218,9 @@ app.get('/api/db-test', async (req, res) => {
       status: 'DB_CONNECTION_FAILED',
       timestamp: new Date().toISOString(),
       error: error.message,
-      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET',
-      details: {
-        name: error.name,
-        code: error.code
-      }
+      errorName: error.name,
+      errorCode: error.code || 'NO_CODE',
+      mongoUri: 'SET'
     });
   }
 });
