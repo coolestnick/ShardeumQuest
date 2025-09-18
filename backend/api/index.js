@@ -150,14 +150,55 @@ app.get('/api/health', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       platform: 'vercel',
       database: dbStatus,
-      region: process.env.VERCEL_REGION || 'unknown'
+      region: process.env.VERCEL_REGION || 'unknown',
+      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
     });
   } catch (error) {
     res.status(503).json({
       status: 'ERROR',
       timestamp: new Date().toISOString(),
-      error: 'Health check failed',
-      platform: 'vercel'
+      error: error.message,
+      platform: 'vercel',
+      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
+    });
+  }
+});
+
+// Database connection test endpoint
+app.get('/api/db-test', async (req, res) => {
+  try {
+    console.log('Testing database connection...');
+    console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+    
+    await connectToDatabase();
+    
+    // Try a simple database operation
+    const User = require('../src/models/User');
+    const userCount = await User.countDocuments();
+    
+    res.json({
+      status: 'DB_CONNECTION_SUCCESS',
+      timestamp: new Date().toISOString(),
+      database: {
+        status: 'connected',
+        readyState: mongoose.connection.readyState,
+        name: mongoose.connection.name,
+        host: mongoose.connection.host
+      },
+      userCount: userCount,
+      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
+    });
+  } catch (error) {
+    console.error('Database test failed:', error);
+    res.status(500).json({
+      status: 'DB_CONNECTION_FAILED',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT_SET',
+      details: {
+        name: error.name,
+        code: error.code
+      }
     });
   }
 });
