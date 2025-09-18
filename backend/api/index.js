@@ -126,8 +126,8 @@ async function connectToDatabase() {
   }
 }
 
-// Database connection middleware for all routes
-app.use(async (req, res, next) => {
+// Database connection middleware - only for routes that need DB
+const requireDatabase = async (req, res, next) => {
   try {
     await connectToDatabase();
     next();
@@ -135,17 +135,32 @@ app.use(async (req, res, next) => {
     console.error('Database connection failed:', error);
     res.status(503).json({ error: 'Database temporarily unavailable' });
   }
-});
+};
 
-// Public routes (no authentication required)
-app.use('/api/public/users', usersPublicRoutes);
-app.use('/api/public/progress', progressPublicRoutes);
+// Public routes (with database middleware)
+app.use('/api/public/users', requireDatabase, usersPublicRoutes);
+app.use('/api/public/progress', requireDatabase, progressPublicRoutes);
 
-// Authenticated routes
-app.use('/api/auth', authLimiter, authRoutes);
+// Authenticated routes (with database middleware)
+app.use('/api/auth', authLimiter, requireDatabase, authRoutes);
+app.use('/api/users', profileLimiter, requireDatabase, userRoutes);
+app.use('/api/progress', requireDatabase, progressRoutes);
+
+// Quests route - doesn't always need database (static data)
 app.use('/api/quests', questRoutes);
-app.use('/api/users', profileLimiter, userRoutes);
-app.use('/api/progress', progressRoutes);
+
+// Simple test endpoint without database
+app.get('/api/test', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'API is working',
+    timestamp: new Date().toISOString(),
+    platform: 'vercel',
+    environment: process.env.NODE_ENV || 'development',
+    mongoUriSet: !!process.env.MONGODB_URI,
+    jwtSecretSet: !!process.env.JWT_SECRET
+  });
+});
 
 // Enhanced health check endpoint for Vercel
 app.get('/api/health', async (req, res) => {
