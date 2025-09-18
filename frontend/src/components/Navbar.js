@@ -81,6 +81,18 @@ function Navbar() {
     setShowWalletMenu(false);
   };
 
+  const handleRefreshData = async () => {
+    if (refreshUserData) {
+      try {
+        await refreshUserData();
+        console.log('User data refreshed manually');
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+    }
+    setShowWalletMenu(false);
+  };
+
   return (
     <nav className="navbar">
       <Link to="/" className="nav-brand">ShardeumQuest</Link>
@@ -130,6 +142,29 @@ function Navbar() {
                     <div style={{ marginBottom: '1rem', fontFamily: 'monospace', fontSize: '0.8rem' }}>
                       {account}
                     </div>
+                    
+                    <button
+                      onClick={handleRefreshData}
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        marginBottom: '0.5rem',
+                        background: 'rgba(0, 255, 0, 0.1)',
+                        border: '1px solid rgba(0, 255, 0, 0.3)',
+                        color: '#00ff00',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(0, 255, 0, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(0, 255, 0, 0.1)';
+                      }}
+                    >
+                      🔄 Refresh Data
+                    </button>
                     
                     <button
                       onClick={switchAccount}
