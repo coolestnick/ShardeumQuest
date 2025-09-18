@@ -3,6 +3,11 @@ const router = express.Router();
 const User = require('../models/User');
 const Progress = require('../models/Progress');
 const axios = require('axios');
+const { 
+  retryOperation, 
+  completeQuestSequentially, 
+  updateQuestProgress 
+} = require('../utils/dbUtils');
 
 // Get user progress by wallet address
 router.get('/user/:walletAddress', async (req, res) => {
@@ -209,7 +214,7 @@ router.put('/update/:questId', async (req, res) => {
   }
 });
 
-// Complete quest with wallet address and blockchain verification
+// Complete quest with wallet address and blockchain verification (Enhanced for high loads)
 router.post('/complete/:questId', async (req, res) => {
   try {
     const { questId } = req.params;
@@ -219,33 +224,26 @@ router.post('/complete/:questId', async (req, res) => {
       return res.status(400).json({ error: 'Wallet address required' });
     }
 
-    const user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    // Use retry operation for database queries
+    const user = await retryOperation(async () => {
+      return await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if quest is already completed
-    const isAlreadyCompleted = user.completedQuests.some(q => q.questId === parseInt(questId));
-    if (isAlreadyCompleted) {
-      return res.status(400).json({ error: 'Quest already completed' });
-    }
-
     // Find and update progress
-    const progress = await Progress.findOne({
-      userId: user._id,
-      questId: parseInt(questId)
+    const progress = await retryOperation(async () => {
+      return await Progress.findOne({
+        userId: user._id,
+        questId: parseInt(questId)
+      });
     });
 
     if (!progress) {
       return res.status(404).json({ error: 'Progress not found. Please start the quest first.' });
     }
-
-    // Mark progress as completed
-    progress.status = 'completed';
-    progress.completedAt = new Date();
-    progress.transactionHash = transactionHash;
-    progress.updatedAt = new Date();
-    await progress.save();
 
     // Get the actual quest XP reward from quests data
     const questsData = [
@@ -257,29 +255,46 @@ router.post('/complete/:questId', async (req, res) => {
     ];
     
     const quest = questsData.find(q => q.id === parseInt(questId));
-    const xpReward = quest ? quest.xpReward : 100; // Use actual quest XP or default to 100
-    
-    user.completedQuests.push({
-      questId: parseInt(questId),
-      completedAt: new Date(),
-      xpEarned: xpReward,
-      transactionHash: transactionHash
+    const xpReward = quest ? quest.xpReward : 100;
+
+    // Use sequential quest completion to prevent race conditions
+    const updatedUser = await completeQuestSequentially(
+      user._id,
+      questId,
+      xpReward,
+      transactionHash
+    );
+
+    // Update progress record separately
+    await retryOperation(async () => {
+      progress.status = 'completed';
+      progress.completedAt = new Date();
+      progress.transactionHash = transactionHash;
+      progress.updatedAt = new Date();
+      return await progress.save();
     });
-    
-    user.totalXP += xpReward;
-    await user.save();
 
     res.json({
       message: 'Quest completed successfully',
       xpEarned: xpReward,
-      totalXP: user.totalXP,
+      totalXP: updatedUser.totalXP,
       transactionHash: transactionHash,
-      completedAt: progress.completedAt
+      completedAt: new Date()
     });
 
   } catch (error) {
     console.error('Complete quest error:', error);
-    res.status(500).json({ error: 'Failed to complete quest' });
+    
+    // Handle specific error types
+    if (error.message === 'Quest already completed') {
+      return res.status(400).json({ error: 'Quest already completed' });
+    }
+    
+    if (error.message === 'User not found') {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.status(500).json({ error: 'Failed to complete quest. Please try again.' });
   }
 });
 

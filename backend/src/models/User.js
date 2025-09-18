@@ -23,7 +23,8 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     },
-    xpEarned: Number
+    xpEarned: Number,
+    transactionHash: String
   }],
   achievements: [{
     achievementId: Number,
@@ -45,7 +46,8 @@ const userSchema = new mongoose.Schema({
     referralSource: String
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  optimisticConcurrency: true // Enable optimistic locking
 });
 
 userSchema.methods.addQuestCompletion = async function(questId, xpEarned) {
@@ -63,5 +65,12 @@ userSchema.methods.addAchievement = async function(achievementId) {
   }
   return this;
 };
+
+// Indexes for better performance
+userSchema.index({ walletAddress: 1 }, { unique: true });
+userSchema.index({ totalXP: -1 }); // For leaderboard queries
+userSchema.index({ lastActiveAt: -1 }); // For activity tracking
+userSchema.index({ 'completedQuests.questId': 1 }); // For quest completion queries
+userSchema.index({ registeredAt: -1 }); // For user registration analytics
 
 module.exports = mongoose.model('User', userSchema);

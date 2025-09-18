@@ -296,7 +296,7 @@ Get quest educational content with Shardeum blog links.
 **Response:**
 ```json
 {
-  "content": "\\n# Welcome to DeFi on Shardeum!\\n\\n## What is DeFi?\\nDecentralized Finance...\\n\\n**[What Is Decentralized Finance? The Basics of DeFi](https://shardeum.org/blog/what-is-defi-decentralized-finance/)**\\n...",
+  "content": "\\n# Welcome to DeFi on Shardeum!\\n\\n## What is DeFi?\\nDecentralized Finance...\\n\\n**[What Is Decentralized Finance? The Basics of DeFi](https://shardeum.org/blog/basics-of-defi/)**\\n...",
   "quiz": [
     {
       "question": "What does DeFi stand for?",
@@ -657,22 +657,22 @@ curl -s http://localhost:3001/api/health
 ## 🎓 Available Quests
 
 1. **Welcome to DeFi on Shardeum** (100 XP)
-   - Learn DeFi basics with [What Is Decentralized Finance?](https://shardeum.org/blog/what-is-defi-decentralized-finance/)
+   - Learn DeFi basics with [What Is Decentralized Finance?](https://shardeum.org/blog/basics-of-defi/)
    - Understand Shardeum with [What is Shardeum?](https://shardeum.org/blog/what-is-shardeum/)
 
 2. **ERC-20 Token Expert** (150 XP)
-   - Master token deployment with [Deploy ERC-20 Smart Contracts using Truffle](https://shardeum.org/blog/deploy-erc20-smart-contracts-using-truffle/)
-   - Learn token creation with [Mint Your Cryptocurrency on Shardeum Testnet](https://shardeum.org/blog/mint-cryptocurrency-shardeum-testnet/)
+   - Master token deployment with [Deploy ERC-20 Smart Contracts using Truffle](https://shardeum.org/blog/how-to-deploy-erc20-smart-contracts-on-shardeum-using-truffle/)
+   - Learn token creation with [Mint Your Cryptocurrency on Shardeum Testnet](https://shardeum.org/blog/unstablenet-launch-smart-contract-testnet/)
 
 3. **DeFi Vault Builder** (200 XP)
-   - Build vaults with [Build and Deploy an ERC20 Vault on Shardeum](https://shardeum.org/blog/build-deploy-erc20-vault-shardeum/)
-   - Deploy contracts with [Deploy a Bank Smart Contract Using Solidity](https://shardeum.org/blog/deploy-bank-smart-contract-solidity/)
+   - Build vaults with [Build and Deploy an ERC20 Vault on Shardeum](https://shardeum.org/blog/build-and-deploy-an-erc20-vault-on-shardeum/)
+   - Deploy contracts with [Deploy a Bank Smart Contract Using Solidity](https://shardeum.org/blog/how-to-deploy-bank-smart-contracts-using-solidity/)
 
 4. **Multi-Token Standards Master** (250 XP)
    - Explore advanced standards with [What is ERC-1155?](https://shardeum.org/blog/what-is-erc-1155/)
 
 5. **Web3 Career Strategist** (300 XP)
-   - Plan your future with [Career Opportunities in Web3](https://shardeum.org/blog/career-opportunities-web3/)
+   - Plan your future with [Career Opportunities in Web3](https://shardeum.org/blog/career-in-web3/)
 
 ---
 

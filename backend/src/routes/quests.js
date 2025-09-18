@@ -82,7 +82,7 @@ router.get('/:id/content', (req, res) => {
 ## What is DeFi?
 Decentralized Finance (DeFi) represents a shift from traditional, centralized financial systems to peer-to-peer finance enabled by decentralized technologies built on blockchain.
 
-**[What Is Decentralized Finance? The Basics of DeFi](https://shardeum.org/blog/what-is-defi-decentralized-finance/)**
+**[What Is Decentralized Finance? The Basics of DeFi](https://shardeum.org/blog/basics-of-defi/)**
 
 ## Why Shardeum?
 Shardeum is an EVM-compatible layer 1 blockchain that uses dynamic state sharding to achieve linear scalability while maintaining decentralization and security.
@@ -118,7 +118,7 @@ Shardeum is an EVM-compatible layer 1 blockchain that uses dynamic state shardin
 ## What are ERC-20 Tokens?
 ERC-20 is a technical standard for fungible tokens on Ethereum and EVM-compatible blockchains like Shardeum.
 
-**[How to Deploy ERC-20 Smart Contracts using Truffle](https://shardeum.org/blog/deploy-erc20-smart-contracts-using-truffle/)**
+**[How to Deploy ERC-20 Smart Contracts using Truffle](https://shardeum.org/blog/how-to-deploy-erc20-smart-contracts-on-shardeum-using-truffle/)**
 
 ### Key Functions:
 - **totalSupply()**: Get the total token supply
@@ -127,7 +127,7 @@ ERC-20 is a technical standard for fungible tokens on Ethereum and EVM-compatibl
 - **approve()**: Allow another address to spend tokens
 - **transferFrom()**: Transfer tokens on behalf of another address
 
-**[How to Mint Your Cryptocurrency on Shardeum Testnet](https://shardeum.org/blog/mint-cryptocurrency-shardeum-testnet/)**
+**[How to Mint Your Cryptocurrency on Shardeum Testnet](https://shardeum.org/blog/unstablenet-launch-smart-contract-testnet/)**
 
 ### Use Cases:
 1. **Governance Tokens**: Vote on protocol decisions
@@ -159,7 +159,7 @@ ERC-20 is a technical standard for fungible tokens on Ethereum and EVM-compatibl
 ## Build Advanced DeFi Protocols
 Learn to create sophisticated DeFi vaults and staking mechanisms on Shardeum.
 
-**[Build and Deploy an ERC20 Vault on Shardeum](https://shardeum.org/blog/build-deploy-erc20-vault-shardeum/)**
+**[Build and Deploy an ERC20 Vault on Shardeum](https://shardeum.org/blog/build-and-deploy-an-erc20-vault-on-shardeum/)**
 
 ### Vault Concepts:
 - **Token Staking**: Lock tokens to earn rewards
@@ -167,7 +167,7 @@ Learn to create sophisticated DeFi vaults and staking mechanisms on Shardeum.
 - **Yield Farming**: Earn returns on crypto holdings
 - **Risk Management**: Understand smart contract risks
 
-**[How to Deploy a Bank Smart Contract Using Solidity](https://shardeum.org/blog/deploy-bank-smart-contract-solidity/)**
+**[How to Deploy a Bank Smart Contract Using Solidity](https://shardeum.org/blog/how-to-deploy-bank-smart-contracts-using-solidity/)**
 
 ### Advanced Features:
 1. **Multi-token Support**: Handle various token types
@@ -242,7 +242,7 @@ A revolutionary standard that combines fungible and non-fungible tokens in a sin
 ## Build Your Future in Blockchain
 Discover the vast career opportunities in Web3, DeFi, and blockchain technology.
 
-**[Career Opportunities in Web3 - A Detailed Guide](https://shardeum.org/blog/career-opportunities-web3/)**
+**[Career Opportunities in Web3 - A Detailed Guide](https://shardeum.org/blog/career-in-web3/)**
 
 ### Career Paths:
 1. **Blockchain Developer**: Build dApps and smart contracts

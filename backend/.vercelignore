@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+
+# Logs
+*.log
+logs/
+*.pid
+
+# Environment files
+.env.local
+.env.development
+.env
+
+# Production server files (not needed for serverless)
+src/server.js
+start-production.sh
+ecosystem.config.js
+monitor.js
+
+# Documentation
+PRODUCTION_README.md
+README.md
+
+# Development files
+.nodemon.json
+*.test.js
+
+# PM2 logs
+backend.log
+backend.pid
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

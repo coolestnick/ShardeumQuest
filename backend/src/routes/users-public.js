@@ -153,4 +153,56 @@ router.put('/profile/:walletAddress', async (req, res) => {
   }
 });
 
+// Check if wallet has interacted with dapp and show completed quests
+router.get('/interaction/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    const user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    
+    if (!user) {
+      return res.json({
+        hasInteracted: false,
+        walletAddress: walletAddress.toLowerCase(),
+        totalXP: 0,
+        completedQuests: [],
+        questsCompleted: 0
+      });
+    }
+
+    // User exists, so they have interacted (even if they haven't completed any quests)
+    const completedQuestDetails = user.completedQuests.map(quest => ({
+      questId: quest.questId,
+      completedAt: quest.completedAt,
+      xpEarned: quest.xpEarned,
+      questName: getQuestName(quest.questId)
+    }));
+
+    res.json({
+      hasInteracted: true,
+      walletAddress: user.walletAddress,
+      username: user.username || null,
+      totalXP: user.totalXP,
+      completedQuests: completedQuestDetails,
+      questsCompleted: user.completedQuests.length,
+      registeredAt: user.registeredAt,
+      lastActiveAt: user.lastActiveAt
+    });
+  } catch (error) {
+    console.error('Interaction check error:', error);
+    res.status(500).json({ error: 'Failed to check interaction' });
+  }
+});
+
+// Helper function to get quest names
+function getQuestName(questId) {
+  const questNames = {
+    1: "Welcome to DeFi",
+    2: "Token Explorer", 
+    3: "DeFi Vault Builder",
+    4: "Multi-Token Standards Master",
+    5: "Web3 Career Strategist"
+  };
+  return questNames[questId] || `Quest ${questId}`;
+}
+
 module.exports = router;

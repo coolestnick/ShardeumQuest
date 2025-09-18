@@ -1,21 +1,32 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 
 const authRoutes = require('../src/routes/auth');
 const questRoutes = require('../src/routes/quests');
 const userRoutes = require('../src/routes/users');
 const progressRoutes = require('../src/routes/progress');
+// Public routes (no authentication required)
+const usersPublicRoutes = require('../src/routes/users-public');
+const progressPublicRoutes = require('../src/routes/progress-public');
 
 const app = express();
 
-// General rate limiting for all requests
+// Vercel-specific configuration
+const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1';
+
+// Enhanced rate limiting for Vercel
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Allow more general requests
+  max: isProduction ? 2000 : 1000, // Higher limits for production
   trustProxy: true, // Important for Vercel
   skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: {
     error: 'Too many requests, please try again later.',
     retryAfter: '15 minutes'
@@ -44,36 +55,60 @@ const profileLimiter = rateLimit({
   }
 });
 
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-vercel-domain.vercel.app'] 
-    : ['http://localhost:3000'],
-  credentials: true
-}));
+// Enhanced CORS configuration for Vercel
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3002', 
+    'https://shardeum-quest-kygh.vercel.app',
+    'https://shardeum-quest-kygh.vercel.app/',
+    /https:\/\/.*\.vercel\.app$/,
+    /https:\/\/shardeum-quest.*\.vercel\.app$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept']
+};
 
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(compression());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(generalLimiter);
 
-// MongoDB connection with connection pooling for serverless
+// Request timeout for Vercel (10s serverless limit)
+app.use((req, res, next) => {
+  req.setTimeout(8000, () => {
+    res.status(408).json({ error: 'Request timeout' });
+  });
+  next();
+});
+
+// Enhanced MongoDB connection for Vercel serverless
 let cachedConnection = null;
 
 async function connectToDatabase() {
-  if (cachedConnection) {
+  if (cachedConnection && mongoose.connection.readyState === 1) {
     return cachedConnection;
   }
 
   try {
-    const connection = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      maxPoolSize: 5, // Limit connection pool size for serverless
-      bufferCommands: false, // Disable mongoose buffering
-      bufferMaxEntries: 0, // Disable mongoose buffering
-    });
+    const connection = await mongoose.connect(
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/shardeumquest',
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        maxPoolSize: 5, // Smaller pool for serverless
+        serverSelectionTimeoutMS: 3000, // Shorter timeout for Vercel
+        socketTimeoutMS: 10000,
+        bufferCommands: false,
+        bufferMaxEntries: 0,
+        family: 4
+      }
+    );
 
     cachedConnection = connection;
-    console.log('✅ MongoDB connected successfully');
+    console.log('✅ MongoDB connected (Vercel)');
     return connection;
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
@@ -81,26 +116,83 @@ async function connectToDatabase() {
   }
 }
 
-// Connect to database on startup
-connectToDatabase().catch(console.error);
+// Database connection middleware for all routes
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(503).json({ error: 'Database temporarily unavailable' });
+  }
+});
 
+// Public routes (no authentication required)
+app.use('/api/public/users', usersPublicRoutes);
+app.use('/api/public/progress', progressPublicRoutes);
+
+// Authenticated routes
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/quests', questRoutes);
 app.use('/api/users', profileLimiter, userRoutes);
 app.use('/api/progress', progressRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    environment: 'Vercel Serverless'
+// Enhanced health check endpoint for Vercel
+app.get('/api/health', async (req, res) => {
+  try {
+    await connectToDatabase();
+    
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      platform: 'vercel',
+      database: dbStatus,
+      region: process.env.VERCEL_REGION || 'unknown'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed',
+      platform: 'vercel'
+    });
+  }
+});
+
+// Enhanced error handling for Vercel
+app.use((err, req, res, next) => {
+  console.error(`[${new Date().toISOString()}] Vercel Error:`, err.stack);
+  
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: 'Validation failed', details: err.message });
+  }
+  
+  if (err.name === 'MongoError' || err.name === 'MongooseError') {
+    return res.status(503).json({ error: 'Database temporarily unavailable' });
+  }
+  
+  if (err.code === 'ECONNABORTED') {
+    return res.status(408).json({ error: 'Request timeout' });
+  }
+  
+  // Don't expose detailed errors in production
+  res.status(500).json({ 
+    error: isProduction ? 'Internal server error' : err.message,
+    platform: 'vercel'
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+// Handle 404s
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'API endpoint not found',
+    path: req.originalUrl,
+    platform: 'vercel'
+  });
 });
 
 // Export as serverless function
