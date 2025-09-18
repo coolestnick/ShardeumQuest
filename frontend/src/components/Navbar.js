@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useWallet } from '../context/WalletContext';
 
 function Navbar() {
-  const { account, user, connectWallet, disconnect, isConnecting, isRestoring } = useWallet();
+  const { account, user, connectWallet, disconnect, isConnecting, isRestoring, refreshUserData } = useWallet();
   const [showWalletMenu, setShowWalletMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -20,6 +20,21 @@ function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Refresh user data periodically to ensure navbar shows latest info
+  useEffect(() => {
+    if (account && refreshUserData) {
+      // Refresh immediately when account changes
+      refreshUserData().catch(console.error);
+      
+      // Set up periodic refresh every 30 seconds
+      const interval = setInterval(() => {
+        refreshUserData().catch(console.error);
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [account, refreshUserData]);
 
   const formatAddress = (address) => {
     if (!address) return '';
