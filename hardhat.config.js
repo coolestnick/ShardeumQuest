@@ -8,9 +8,9 @@ dotenv.config();
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
-    shardeumUnstable: {
-      url: "https://api-unstable.shardeum.org/",
-      chainId: 8080,
+    shardeumTestnet: {
+      url: "https://api-mezame.shardeum.org",
+      chainId: 8119,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
     }
   }

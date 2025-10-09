@@ -13,7 +13,7 @@ function NetworkHelper() {
       try {
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         // Only show if not on correct network
-        if (chainId.toLowerCase() !== '0x1f90') {
+        if (chainId.toLowerCase() !== '0x1fb7') {
           setIsVisible(true);
         }
       } catch (error) {
@@ -45,7 +45,7 @@ function NetworkHelper() {
       // First try to switch to the network
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x1F90' }]
+        params: [{ chainId: '0x1FB7' }]
       });
       setIsVisible(false);
     } catch (switchError) {
@@ -55,15 +55,15 @@ function NetworkHelper() {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [{
-              chainId: '0x1F90', // 8080 in hex
-              chainName: 'Shardeum Unstablenet',
+              chainId: '0x1FB7', // 8119 in hex
+              chainName: 'Shardeum EVM Testnet',
               nativeCurrency: {
                 name: 'Shardeum',
                 symbol: 'SHM',
                 decimals: 18
               },
-              rpcUrls: ['https://api-unstable.shardeum.org/'],
-              blockExplorerUrls: ['https://explorer-unstable.shardeum.org/']
+              rpcUrls: ['https://api-mezame.shardeum.org'],
+              blockExplorerUrls: ['https://explorer-mezame.shardeum.org']
             }]
           });
           alert('✅ Network added successfully! You can now connect your wallet.');
@@ -113,9 +113,9 @@ function NetworkHelper() {
       </p>
       
       <div style={{ fontSize: '0.8rem', marginBottom: '10px' }}>
-        <strong>Network:</strong> Shardeum Unstablenet<br/>
-        <strong>RPC:</strong> https://api-unstable.shardeum.org/<br/>
-        <strong>Chain ID:</strong> 8080<br/>
+        <strong>Network:</strong> Shardeum EVM Testnet<br/>
+        <strong>RPC:</strong> https://api-mezame.shardeum.org<br/>
+        <strong>Chain ID:</strong> 8119<br/>
         <strong>Symbol:</strong> SHM
       </div>
       

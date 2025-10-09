@@ -333,12 +333,18 @@ function QuestDetail() {
           window.location.href = '/quests';
         } catch (backendError) {
           console.error('Backend update also failed:', backendError);
-          
+
           // Complete the transaction loader
           completeTransaction();
-          
-          alert(`Transaction sent (${tx.hash.slice(0,10)}...) but backend update failed. Please refresh to see your progress.`);
-          
+
+          // Check if it's a "Quest already completed" error
+          const errorMessage = backendError.response?.data?.error || backendError.message;
+          if (errorMessage && errorMessage.toLowerCase().includes('already completed')) {
+            alert(`Quest completed! Transaction: ${tx.hash.slice(0,10)}...`);
+          } else {
+            alert(`Transaction sent (${tx.hash.slice(0,10)}...) but backend update failed. Please refresh to see your progress.`);
+          }
+
           // Force refresh
           window.location.href = '/quests';
         }

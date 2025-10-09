@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
@@ -152,14 +152,14 @@ export const WalletProvider = ({ children }) => {
       
       // Check and switch network if needed
       const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      console.log('Current chain ID:', chainId, '(Expected: 0x1f90 for Chain ID 8080)');
-      
+      console.log('Current chain ID:', chainId, '(Expected: 0x1fb7 for Chain ID 8119)');
+
       // Check for both uppercase and lowercase hex
-      if (chainId.toLowerCase() !== '0x1f90') { // 8080 in hex
-        console.log('Switching to Shardeum Unstablenet...');
+      if (chainId.toLowerCase() !== '0x1fb7') { // 8119 in hex
+        console.log('Switching to Shardeum EVM Testnet...');
         await switchToShardeum();
       } else {
-        console.log('✅ Already on correct network (Shardeum Unstablenet)');
+        console.log('✅ Already on correct network (Shardeum EVM Testnet)');
       }
       
       // Get provider and signer after network switch
@@ -195,40 +195,40 @@ export const WalletProvider = ({ children }) => {
 
   const switchToShardeum = async () => {
     try {
-      console.log('Attempting to switch to Shardeum Unstablenet...');
-      
+      console.log('Attempting to switch to Shardeum EVM Testnet...');
+
       // First try to switch to the network
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x1F90' }] // 8080 in hex
+        params: [{ chainId: '0x1FB7' }] // 8119 in hex
       });
-      
-      console.log('Successfully switched to Shardeum Unstablenet');
-      
+
+      console.log('Successfully switched to Shardeum EVM Testnet');
+
     } catch (switchError) {
       console.log('Switch error:', switchError);
-      
+
       // Network doesn't exist, add it
       if (switchError.code === 4902) {
-        console.log('Network not found, adding Shardeum Unstablenet...');
-        
+        console.log('Network not found, adding Shardeum EVM Testnet...');
+
         await window.ethereum.request({
           method: 'wallet_addEthereumChain',
           params: [{
-            chainId: '0x1F90', // 8080 in hex
-            chainName: 'Shardeum Unstablenet',
+            chainId: '0x1FB7', // 8119 in hex
+            chainName: 'Shardeum EVM Testnet',
             nativeCurrency: {
               name: 'Shardeum',
               symbol: 'SHM',
               decimals: 18
             },
-            rpcUrls: ['https://api-unstable.shardeum.org/'],
-            blockExplorerUrls: ['https://explorer-unstable.shardeum.org/']
+            rpcUrls: ['https://api-mezame.shardeum.org'],
+            blockExplorerUrls: ['https://explorer-mezame.shardeum.org']
           }]
         });
-        
-        console.log('Successfully added Shardeum Unstablenet');
-        
+
+        console.log('Successfully added Shardeum EVM Testnet');
+
       } else if (switchError.code === 4001) {
         throw new Error('User rejected network switch');
       } else {
@@ -308,12 +308,12 @@ export const WalletProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     if (account) {
       try {
         console.log('Refreshing user data for account:', account);
         const response = await axios.get(`${API_URL}/api/public/users/profile/${account}`);
-        
+
         const updatedUser = {
           walletAddress: response.data.walletAddress,
           username: response.data.username,
@@ -321,17 +321,17 @@ export const WalletProvider = ({ children }) => {
           completedQuests: response.data.completedQuests.length,
           achievements: response.data.achievements.length
         };
-        
+
         console.log('Setting updated user data:', updatedUser);
         setUser(updatedUser);
-        
+
         return updatedUser;
       } catch (error) {
         console.error('Failed to refresh user data:', error);
         throw error;
       }
     }
-  };
+  }, [account, API_URL]);
 
   const value = {
     account,
