@@ -12,17 +12,17 @@ router.get('/profile/:walletAddress', async (req, res) => {
       // Create a new user if not found
       const newUser = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: '',
+        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: []
       });
       await newUser.save();
-      
+
       return res.json({
         id: newUser._id,
         walletAddress: newUser.walletAddress,
-        username: '',
+        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: [],
@@ -133,7 +133,7 @@ router.put('/profile/:walletAddress', async (req, res) => {
     }
 
     // Update username
-    user.username = username || '';
+    user.username = username || null;
     user.lastActiveAt = new Date();
     await user.save();
 

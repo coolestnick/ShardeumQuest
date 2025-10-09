@@ -169,7 +169,7 @@ router.get('/verify/:questId', authenticateToken, async (req, res) => {
       });
     }
 
-    const provider = new ethers.JsonRpcProvider('https://api-unstable.shardeum.org/');
+    const provider = new ethers.JsonRpcProvider('https://api-mezame.shardeum.org');
     const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
     
     const onChainCompleted = await contract.hasCompletedQuest(req.walletAddress, questId);

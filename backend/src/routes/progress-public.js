@@ -13,10 +13,18 @@ const {
 router.get('/user/:walletAddress', async (req, res) => {
   try {
     const { walletAddress } = req.params;
-    const user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
-    
+    let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      // Create a new user if not found
+      user = new User({
+        walletAddress: walletAddress.toLowerCase(),
+        username: null,
+        totalXP: 0,
+        completedQuests: [],
+        achievements: []
+      });
+      await user.save();
     }
 
     const activeProgress = await Progress.find({
