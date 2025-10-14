@@ -42,8 +42,33 @@ router.get('/profile/:walletAddress', async (req, res) => {
       lastActiveAt: user.lastActiveAt
     });
   } catch (error) {
-    console.error('Profile fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch profile' });
+    console.error('Profile fetch error:', {
+      walletAddress: req.params.walletAddress,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        error: 'User creation conflict',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to fetch profile',
+      retryable: true
+    });
   }
 });
 

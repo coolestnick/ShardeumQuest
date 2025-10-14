@@ -22,11 +22,14 @@ const isVercel = process.env.VERCEL === '1';
 // Enhanced rate limiting for Vercel
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProduction ? 2000 : 1000, // Higher limits for production
+  max: isProduction ? 5000 : 1000, // Much higher limits for production
   trustProxy: true, // Important for Vercel
-  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for read-only public endpoints
+    return req.method === 'GET' && req.path.startsWith('/api/public/');
+  },
   message: {
     error: 'Too many requests, please try again later.',
     retryAfter: '15 minutes'
@@ -87,41 +90,56 @@ app.use((req, res, next) => {
 // Enhanced MongoDB connection for Vercel serverless
 let cachedConnection = null;
 
-async function connectToDatabase() {
+async function connectToDatabase(retries = 3) {
   if (cachedConnection && mongoose.connection.readyState === 1) {
     console.log('♻️  Reusing cached MongoDB connection');
     return cachedConnection;
   }
 
-  try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tip-dapp';
-    console.log('🔌 Attempting MongoDB connection...');
-    console.log('📍 MongoDB URI present:', !!process.env.MONGODB_URI);
-    console.log('🌐 Connection string preview:', mongoUri.substring(0, 50) + '...');
-    
-    const connection = await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      maxPoolSize: 5, // Smaller pool for serverless
-      serverSelectionTimeoutMS: 5000, // Increased timeout for Vercel
-      socketTimeoutMS: 15000, // Increased socket timeout
-      bufferCommands: false
-      // Removed bufferMaxEntries and family options that cause issues on Vercel
-    });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tip-dapp';
+      console.log(`🔌 Attempting MongoDB connection (attempt ${attempt}/${retries})...`);
+      console.log('📍 MongoDB URI present:', !!process.env.MONGODB_URI);
+      console.log('🌐 Connection string preview:', mongoUri.substring(0, 50) + '...');
 
-    cachedConnection = connection;
-    console.log('✅ MongoDB connected successfully (Vercel)');
-    console.log('📊 Database:', mongoose.connection.name);
-    console.log('🏠 Host:', mongoose.connection.host);
-    return connection;
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', {
-      message: error.message,
-      name: error.name,
-      code: error.code,
-      mongoUri: !!process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
-    });
-    throw error;
+      const connection = await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        maxPoolSize: 10, // Increased pool size for better concurrency
+        minPoolSize: 2,  // Maintain minimum connections
+        serverSelectionTimeoutMS: 8000, // Increased timeout for Vercel
+        socketTimeoutMS: 20000, // Increased socket timeout
+        connectTimeoutMS: 10000, // Connection timeout
+        bufferCommands: false,
+        retryWrites: true,
+        retryReads: true
+        // Removed bufferMaxEntries and family options that cause issues on Vercel
+      });
+
+      cachedConnection = connection;
+      console.log('✅ MongoDB connected successfully (Vercel)');
+      console.log('📊 Database:', mongoose.connection.name);
+      console.log('🏠 Host:', mongoose.connection.host);
+      return connection;
+    } catch (error) {
+      console.error(`❌ MongoDB connection failed (attempt ${attempt}/${retries}):`, {
+        message: error.message,
+        name: error.name,
+        code: error.code,
+        mongoUri: !!process.env.MONGODB_URI ? 'SET' : 'NOT_SET'
+      });
+
+      // If this is the last attempt, throw the error
+      if (attempt === retries) {
+        throw error;
+      }
+
+      // Wait before retrying (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
   }
 }
 
