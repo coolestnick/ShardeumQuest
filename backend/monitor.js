@@ -7,7 +7,7 @@ const { checkDatabaseHealth } = require('./src/utils/dbUtils');
  */
 
 const API_URL = process.env.API_URL || 'http://localhost:3001';
-const CHECK_INTERVAL = process.env.CHECK_INTERVAL || 30000; // 30 seconds
+const CHECK_INTERVAL = process.env.CHECK_INTERVAL || 60000; // 30 seconds
 
 class HealthMonitor {
   constructor() {
