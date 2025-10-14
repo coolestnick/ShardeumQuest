@@ -120,10 +120,12 @@ router.post('/start/:questId', async (req, res) => {
     // Get or create user
     let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
     if (!user) {
-      user = new User({ 
+      user = new User({
         walletAddress: walletAddress.toLowerCase(),
+        username: null,
         totalXP: 0,
-        completedQuests: []
+        completedQuests: [],
+        achievements: []
       });
       await user.save();
     }
@@ -185,9 +187,17 @@ router.put('/update/:questId', async (req, res) => {
       return res.status(400).json({ error: 'Wallet address required' });
     }
 
-    const user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    // Get or create user
+    let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      user = new User({
+        walletAddress: walletAddress.toLowerCase(),
+        username: null,
+        totalXP: 0,
+        completedQuests: [],
+        achievements: []
+      });
+      await user.save();
     }
 
     const progress = await Progress.findOne({
@@ -232,13 +242,20 @@ router.post('/complete/:questId', async (req, res) => {
       return res.status(400).json({ error: 'Wallet address required' });
     }
 
-    // Use retry operation for database queries
-    const user = await retryOperation(async () => {
+    // Use retry operation for database queries - Get or create user
+    let user = await retryOperation(async () => {
       return await User.findOne({ walletAddress: walletAddress.toLowerCase() });
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      user = new User({
+        walletAddress: walletAddress.toLowerCase(),
+        username: null,
+        totalXP: 0,
+        completedQuests: [],
+        achievements: []
+      });
+      await user.save();
     }
 
     // Find and update progress
