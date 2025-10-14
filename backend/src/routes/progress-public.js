@@ -39,8 +39,26 @@ router.get('/user/:walletAddress', async (req, res) => {
       activeProgress: activeProgress
     });
   } catch (error) {
-    console.error('Progress fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch progress' });
+    console.error('Progress fetch error:', {
+      walletAddress: req.params.walletAddress,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to fetch progress',
+      retryable: true
+    });
   }
 });
 
@@ -75,8 +93,27 @@ router.get('/quest/:questId/status', async (req, res) => {
       xpEarned: isCompleted ? user.completedQuests.find(q => q.questId === parseInt(questId))?.xpEarned || 0 : 0
     });
   } catch (error) {
-    console.error('Quest status error:', error);
-    res.status(500).json({ error: 'Failed to check quest status' });
+    console.error('Quest status error:', {
+      questId: req.params.questId,
+      walletAddress: req.query.walletAddress,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to check quest status',
+      retryable: true
+    });
   }
 });
 
@@ -102,8 +139,26 @@ router.get('/recent-completions', async (req, res) => {
 
     res.json(recentCompletions);
   } catch (error) {
-    console.error('Recent completions error:', error);
-    res.status(500).json({ error: 'Failed to fetch recent completions' });
+    console.error('Recent completions error:', {
+      limit: req.query.limit,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to fetch recent completions',
+      retryable: true
+    });
   }
 });
 
@@ -172,8 +227,34 @@ router.post('/start/:questId', async (req, res) => {
     await progress.save();
     res.json(progress);
   } catch (error) {
-    console.error('Start quest error:', error);
-    res.status(500).json({ error: 'Failed to start quest' });
+    console.error('Start quest error:', {
+      questId: req.params.questId,
+      walletAddress: req.body.walletAddress,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        error: 'Quest already in progress',
+        retryable: false
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to start quest',
+      retryable: true
+    });
   }
 });
 
@@ -227,8 +308,28 @@ router.put('/update/:questId', async (req, res) => {
     await progress.save();
     res.json(progress);
   } catch (error) {
-    console.error('Update progress error:', error);
-    res.status(500).json({ error: 'Failed to update progress' });
+    console.error('Update progress error:', {
+      questId: req.params.questId,
+      walletAddress: req.body.walletAddress,
+      stepId: req.body.stepId,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Failed to update progress',
+      retryable: true
+    });
   }
 });
 
