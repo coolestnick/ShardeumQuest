@@ -13,6 +13,10 @@ router.post('/login', verifySignature, async (req, res) => {
     if (!user) {
       user = await User.create({
         walletAddress,
+        username: null,
+        totalXP: 0,
+        completedQuests: [],
+        achievements: [],
         metadata: {
           browser: req.headers['user-agent'],
           referralSource: req.headers['referer']
@@ -36,8 +40,33 @@ router.post('/login', verifySignature, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Login error:', {
+      walletAddress: req.walletAddress,
+      errorMessage: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        error: 'User creation conflict',
+        retryable: true
+      });
+    }
+
+    res.status(500).json({
+      error: 'Login failed',
+      retryable: true
+    });
   }
 });
 
