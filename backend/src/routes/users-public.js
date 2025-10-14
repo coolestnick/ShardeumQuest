@@ -59,6 +59,29 @@ router.get('/profile/:walletAddress', async (req, res) => {
     }
 
     if (error.code === 11000) {
+      // Race condition: user was created by another request
+      // Re-fetch the user and return it
+      try {
+        const existingUser = await User.findOne({
+          walletAddress: req.params.walletAddress.toLowerCase()
+        });
+
+        if (existingUser) {
+          return res.json({
+            id: existingUser._id,
+            walletAddress: existingUser.walletAddress,
+            username: existingUser.username,
+            totalXP: existingUser.totalXP,
+            completedQuests: existingUser.completedQuests,
+            achievements: existingUser.achievements,
+            registeredAt: existingUser.registeredAt,
+            lastActiveAt: existingUser.lastActiveAt
+          });
+        }
+      } catch (refetchError) {
+        console.error('Error refetching user after conflict:', refetchError);
+      }
+
       return res.status(409).json({
         error: 'User creation conflict',
         retryable: true

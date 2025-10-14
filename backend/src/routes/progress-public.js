@@ -55,6 +55,32 @@ router.get('/user/:walletAddress', async (req, res) => {
       });
     }
 
+    if (error.code === 11000) {
+      // Race condition: user was created by another request
+      // Re-fetch and return the data
+      try {
+        const existingUser = await User.findOne({
+          walletAddress: req.params.walletAddress.toLowerCase()
+        });
+
+        if (existingUser) {
+          const activeProgress = await Progress.find({
+            userId: existingUser._id,
+            status: { $in: ['not_started', 'in_progress'] }
+          }).select('questId status steps createdAt updatedAt');
+
+          return res.json({
+            walletAddress: existingUser.walletAddress,
+            totalXP: existingUser.totalXP,
+            completedQuests: existingUser.completedQuests,
+            activeProgress: activeProgress
+          });
+        }
+      } catch (refetchError) {
+        console.error('Error refetching after conflict:', refetchError);
+      }
+    }
+
     res.status(500).json({
       error: 'Failed to fetch progress',
       retryable: true
@@ -245,9 +271,40 @@ router.post('/start/:questId', async (req, res) => {
     }
 
     if (error.code === 11000) {
+      // Race condition: user was created by another request
+      // Re-fetch the user and try the operation again
+      try {
+        const existingUser = await User.findOne({
+          walletAddress: req.body.walletAddress.toLowerCase()
+        });
+
+        if (existingUser) {
+          // Check if progress already exists
+          const existingProgress = await Progress.findOne({
+            userId: existingUser._id,
+            questId: parseInt(req.params.questId)
+          });
+
+          if (existingProgress) {
+            return res.json(existingProgress);
+          }
+
+          // Check if quest is already completed
+          const isCompleted = existingUser.completedQuests.some(q =>
+            q.questId === parseInt(req.params.questId)
+          );
+
+          if (isCompleted) {
+            return res.status(400).json({ error: 'Quest already completed' });
+          }
+        }
+      } catch (refetchError) {
+        console.error('Error refetching after conflict:', refetchError);
+      }
+
       return res.status(409).json({
-        error: 'Quest already in progress',
-        retryable: false
+        error: 'Failed to start quest due to conflict',
+        retryable: true
       });
     }
 
@@ -322,6 +379,14 @@ router.put('/update/:questId', async (req, res) => {
     if (error.name === 'MongoError' || error.name === 'MongooseError') {
       return res.status(503).json({
         error: 'Database temporarily unavailable',
+        retryable: true
+      });
+    }
+
+    if (error.code === 11000) {
+      // Race condition: user was created by another request
+      return res.status(409).json({
+        error: 'User creation conflict',
         retryable: true
       });
     }
