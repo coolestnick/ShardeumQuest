@@ -13,7 +13,7 @@ router.post('/login', verifySignature, async (req, res) => {
     if (!user) {
       user = await User.create({
         walletAddress,
-        username: null,
+        // username intentionally omitted - will be undefined (sparse index allows this)
         totalXP: 0,
         completedQuests: [],
         achievements: [],

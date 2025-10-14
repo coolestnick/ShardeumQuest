@@ -12,7 +12,7 @@ router.get('/profile/:walletAddress', async (req, res) => {
       // Create a new user if not found
       const newUser = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: null,
+        // username intentionally omitted - will be undefined (sparse index allows this)
         totalXP: 0,
         completedQuests: [],
         achievements: []
@@ -22,7 +22,7 @@ router.get('/profile/:walletAddress', async (req, res) => {
       return res.json({
         id: newUser._id,
         walletAddress: newUser.walletAddress,
-        username: null,
+        username: newUser.username || null, // Return null for frontend if undefined
         totalXP: 0,
         completedQuests: [],
         achievements: [],

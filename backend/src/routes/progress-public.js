@@ -19,7 +19,6 @@ router.get('/user/:walletAddress', async (req, res) => {
       // Create a new user if not found
       user = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: []
@@ -203,7 +202,6 @@ router.post('/start/:questId', async (req, res) => {
     if (!user) {
       user = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: []
@@ -330,7 +328,6 @@ router.put('/update/:questId', async (req, res) => {
     if (!user) {
       user = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: []
@@ -416,7 +413,6 @@ router.post('/complete/:questId', async (req, res) => {
     if (!user) {
       user = new User({
         walletAddress: walletAddress.toLowerCase(),
-        username: null,
         totalXP: 0,
         completedQuests: [],
         achievements: []

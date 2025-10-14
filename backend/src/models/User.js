@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     unique: true,
-    sparse: true,
-    default: null
+    sparse: true
+    // NO default value - field will be undefined/missing for users without username
   },
   totalXP: {
     type: Number,
