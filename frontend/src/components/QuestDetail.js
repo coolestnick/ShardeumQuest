@@ -226,11 +226,28 @@ function QuestDetail() {
       return;
     }
 
+    // If quest not started, start it first
+    if (!progress) {
+      console.log('Quest not started, starting quest first...');
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/public/progress/start/${id}`,
+          { walletAddress: account }
+        );
+        setProgress(response.data);
+        console.log('Quest started successfully');
+      } catch (error) {
+        console.error('Error starting quest:', error);
+        alert(`Failed to start quest: ${error.response?.data?.error || error.message}`);
+        return;
+      }
+    }
+
     const isCompleted = completedSteps.includes(stepId);
-    const newCompletedSteps = isCompleted 
+    const newCompletedSteps = isCompleted
       ? completedSteps.filter(s => s !== stepId)
       : [...completedSteps, stepId];
-    
+
     setCompletedSteps(newCompletedSteps);
 
     try {
@@ -240,6 +257,39 @@ function QuestDetail() {
       );
     } catch (error) {
       console.error('Error updating progress:', error);
+
+      // If 404, the progress record doesn't exist - try to start the quest
+      if (error.response?.status === 404) {
+        console.log('Progress not found (404), attempting to start quest...');
+        try {
+          const response = await axios.post(
+            `${API_BASE_URL}/api/public/progress/start/${id}`,
+            { walletAddress: account }
+          );
+          setProgress(response.data);
+
+          // Retry the update
+          await axios.put(
+            `${API_BASE_URL}/api/public/progress/update/${id}`,
+            { walletAddress: account, stepId, completed: !isCompleted }
+          );
+          console.log('Quest started and step updated successfully');
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+          // Revert the optimistic update
+          setCompletedSteps(isCompleted
+            ? [...completedSteps]
+            : completedSteps.filter(s => s !== stepId)
+          );
+          alert(`Failed to update progress: ${retryError.response?.data?.error || retryError.message}`);
+        }
+      } else {
+        // Revert the optimistic update for other errors
+        setCompletedSteps(isCompleted
+          ? [...completedSteps]
+          : completedSteps.filter(s => s !== stepId)
+        );
+      }
     }
   };
 
