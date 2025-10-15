@@ -14,9 +14,9 @@ function QuestDetail() {
   
   const [quest, setQuest] = useState(null);
   const [content, setContent] = useState(null);
-  const [progress, setProgress] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isQuestCompleted, setIsQuestCompleted] = useState(false);
 
   // Helper function to parse inline markdown (bold, italic, etc.)
   const parseInlineMarkdown = (text) => {
@@ -169,9 +169,9 @@ function QuestDetail() {
 
   useEffect(() => {
     if (account) {
-      fetchProgress();
+      checkQuestCompletion();
     }
-    // eslint-disable-next-line 
+    // eslint-disable-next-line
   }, [account, id]);
 
   const fetchQuestDetails = async () => {
@@ -189,108 +189,25 @@ function QuestDetail() {
     }
   };
 
-  const fetchProgress = async () => {
+  const checkQuestCompletion = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/public/progress/user/${account}`);
-      const questProgress = response.data.activeProgress.find(p => p.questId === parseInt(id));
-      if (questProgress) {
-        setProgress(questProgress);
-        setCompletedSteps(questProgress.steps.filter(s => s.completed).map(s => s.stepId));
-      }
-    } catch (error) {
-      console.error('Error fetching progress:', error);
-    }
-  };
-
-  const startQuest = async () => {
-    if (!account) {
-      alert('Please connect your wallet');
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/public/progress/start/${id}`,
-        { walletAddress: account }
+      const response = await axios.get(
+        `${API_BASE_URL}/api/public/progress/quest/${id}/status?walletAddress=${account}`
       );
-      setProgress(response.data);
+      setIsQuestCompleted(response.data.completed);
     } catch (error) {
-      console.error('Error starting quest:', error);
-      alert(`Failed to start quest: ${error.response?.data?.error || error.message}`);
+      console.error('Error checking quest completion:', error);
     }
   };
 
-  const toggleStep = async (stepId) => {
-    if (!account) {
-      alert('Please connect your wallet');
-      return;
-    }
-
-    // If quest not started, start it first
-    if (!progress) {
-      console.log('Quest not started, starting quest first...');
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/public/progress/start/${id}`,
-          { walletAddress: account }
-        );
-        setProgress(response.data);
-        console.log('Quest started successfully');
-      } catch (error) {
-        console.error('Error starting quest:', error);
-        alert(`Failed to start quest: ${error.response?.data?.error || error.message}`);
-        return;
-      }
-    }
-
+  const toggleStep = (stepId) => {
+    // Pure client-side toggle - no backend updates
     const isCompleted = completedSteps.includes(stepId);
     const newCompletedSteps = isCompleted
       ? completedSteps.filter(s => s !== stepId)
       : [...completedSteps, stepId];
 
     setCompletedSteps(newCompletedSteps);
-
-    try {
-      await axios.put(
-        `${API_BASE_URL}/api/public/progress/update/${id}`,
-        { walletAddress: account, stepId, completed: !isCompleted }
-      );
-    } catch (error) {
-      console.error('Error updating progress:', error);
-
-      // If 404, the progress record doesn't exist - try to start the quest
-      if (error.response?.status === 404) {
-        console.log('Progress not found (404), attempting to start quest...');
-        try {
-          const response = await axios.post(
-            `${API_BASE_URL}/api/public/progress/start/${id}`,
-            { walletAddress: account }
-          );
-          setProgress(response.data);
-
-          // Retry the update
-          await axios.put(
-            `${API_BASE_URL}/api/public/progress/update/${id}`,
-            { walletAddress: account, stepId, completed: !isCompleted }
-          );
-          console.log('Quest started and step updated successfully');
-        } catch (retryError) {
-          console.error('Retry failed:', retryError);
-          // Revert the optimistic update
-          setCompletedSteps(isCompleted
-            ? [...completedSteps]
-            : completedSteps.filter(s => s !== stepId)
-          );
-          alert(`Failed to update progress: ${retryError.response?.data?.error || retryError.message}`);
-        }
-      } else {
-        // Revert the optimistic update for other errors
-        setCompletedSteps(isCompleted
-          ? [...completedSteps]
-          : completedSteps.filter(s => s !== stepId)
-        );
-      }
-    }
   };
 
   const completeQuest = async () => {
@@ -467,10 +384,18 @@ function QuestDetail() {
           <div className="error" style={{ marginTop: '2rem' }}>
             Connect your wallet to track progress
           </div>
-        ) : !progress ? (
-          <button className="cta-button" onClick={startQuest} style={{ marginTop: '2rem' }}>
-            Start Quest
-          </button>
+        ) : isQuestCompleted ? (
+          <div style={{
+            marginTop: '2rem',
+            padding: '1.5rem',
+            background: 'rgba(0, 255, 0, 0.1)',
+            border: '2px solid rgba(0, 255, 0, 0.3)',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ color: '#00ff00', marginBottom: '0.5rem' }}>✅ Quest Completed!</h2>
+            <p style={{ color: '#ffffff' }}>You've already completed this quest and earned the XP.</p>
+          </div>
         ) : (
           <>
             <div className="quest-steps">
