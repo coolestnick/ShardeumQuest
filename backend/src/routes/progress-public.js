@@ -420,18 +420,6 @@ router.post('/complete/:questId', async (req, res) => {
       await user.save();
     }
 
-    // Find and update progress
-    const progress = await retryOperation(async () => {
-      return await Progress.findOne({
-        userId: user._id,
-        questId: parseInt(questId)
-      });
-    });
-
-    if (!progress) {
-      return res.status(404).json({ error: 'Progress not found. Please start the quest first.' });
-    }
-
     // Get the actual quest XP reward from quests data
     const questsData = [
       { id: 1, xpReward: 100 },
@@ -440,7 +428,7 @@ router.post('/complete/:questId', async (req, res) => {
       { id: 4, xpReward: 250 },
       { id: 5, xpReward: 300 }
     ];
-    
+
     const quest = questsData.find(q => q.id === parseInt(questId));
     const xpReward = quest ? quest.xpReward : 100;
 
@@ -452,14 +440,25 @@ router.post('/complete/:questId', async (req, res) => {
       transactionHash
     );
 
-    // Update progress record separately
-    await retryOperation(async () => {
-      progress.status = 'completed';
-      progress.completedAt = new Date();
-      progress.transactionHash = transactionHash;
-      progress.updatedAt = new Date();
-      return await progress.save();
+    // Find and update progress record if it exists (optional - for backwards compatibility)
+    const progress = await retryOperation(async () => {
+      return await Progress.findOne({
+        userId: user._id,
+        questId: parseInt(questId)
+      });
     });
+
+    if (progress) {
+      // Update existing progress record
+      await retryOperation(async () => {
+        progress.status = 'completed';
+        progress.completedAt = new Date();
+        progress.transactionHash = transactionHash;
+        progress.updatedAt = new Date();
+        return await progress.save();
+      });
+    }
+    // If no progress record exists, that's fine - we still complete the quest
 
     res.json({
       message: 'Quest completed successfully',
