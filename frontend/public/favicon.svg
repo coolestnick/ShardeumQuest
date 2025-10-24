@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Book icon with Shardeum colors -->
+  <defs>
+    <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0080FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#1a1a2e"/>
+
+  <!-- Book -->
+  <g transform="translate(16, 14)">
+    <!-- Left page -->
+    <path d="M 2 4 L 2 32 L 14 32 Q 14 28 16 28 Q 14 28 14 24 L 14 4 Z"
+          fill="url(#bookGradient)"
+          stroke="#00D4FF"
+          stroke-width="1.5"/>
+
+    <!-- Right page -->
+    <path d="M 18 4 L 18 24 Q 18 28 16 28 Q 18 28 18 32 L 30 32 L 30 4 Z"
+          fill="url(#bookGradient)"
+          stroke="#00D4FF"
+          stroke-width="1.5"/>
+
+    <!-- Book spine -->
+    <rect x="15" y="4" width="2" height="28" fill="#0080FF"/>
+
+    <!-- Page lines on left -->
+    <line x1="5" y1="10" x2="12" y2="10" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+    <line x1="5" y1="14" x2="12" y2="14" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+    <line x1="5" y1="18" x2="12" y2="18" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+
+    <!-- Page lines on right -->
+    <line x1="20" y1="10" x2="27" y2="10" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+    <line x1="20" y1="14" x2="27" y2="14" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+    <line x1="20" y1="18" x2="27" y2="18" stroke="#ffffff" stroke-width="0.8" opacity="0.6"/>
+  </g>
+</svg>

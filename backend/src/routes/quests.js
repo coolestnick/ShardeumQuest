@@ -11,7 +11,7 @@ const quests = [
     xpReward: 100,
     steps: [
       { id: "defi-basics", title: "Read: What Is Decentralized Finance? The Basics of DeFi" },
-      { id: "shardeum-intro", title: "Read: What is Shardeum?" },
+      { id: "shardeum-intro", title: "Read: Get, Use & Earn SHM" },
       { id: "complete", title: "Complete the welcome quest" }
     ]
   },
@@ -84,18 +84,24 @@ Decentralized Finance (DeFi) represents a shift from traditional, centralized fi
 
 **[What Is Decentralized Finance? The Basics of DeFi](https://shardeum.org/blog/basics-of-defi/)**
 
-## Why Shardeum?
-Shardeum is an EVM-compatible layer 1 blockchain that uses dynamic state sharding to achieve linear scalability while maintaining decentralization and security.
+## Get, Use & Earn SHM
+Learn everything you need to know about Shardeum's native token (SHM) - how to get it, use it, and earn rewards in the Shardeum ecosystem.
 
-**[What is Shardeum?](https://shardeum.org/blog/what-is-shardeum/)**
+**[Get, Use & Earn SHM](https://shardeum.org/blog/get-use-earn-shm/)**
 
-### Key Features:
+### What You'll Learn:
+- **Getting SHM**: How to acquire Shardeum's native token
+- **Using SHM**: Transaction fees, staking, and participating in governance
+- **Earning SHM**: Validator rewards, staking yields, and ecosystem incentives
+- **SHM Utility**: Understanding the token's role in the network
+
+### Key Features of Shardeum:
 - **Linear Scalability**: Network capacity increases by adding more nodes
-- **Low Gas Fees**: Consistently low transaction costs
+- **Low Gas Fees**: Consistently low transaction costs paid in SHM
 - **EVM Compatible**: Deploy existing Ethereum dApps easily
 - **Fast Finality**: Quick transaction confirmations
 
-✅ Read both articles above to understand DeFi and Shardeum fundamentals
+✅ Read both articles above to understand DeFi and Shardeum's tokenomics
 ✅ Complete this quest to begin your DeFi journey on Shardeum!
       `,
       quiz: [
