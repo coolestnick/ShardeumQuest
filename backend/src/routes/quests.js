@@ -96,7 +96,6 @@ Learn everything you need to know about Shardeum's native token (SHM) - how to g
 - **SHM Utility**: Understanding the token's role in the network
 
 ### Key Features of Shardeum:
-- **Linear Scalability**: Network capacity increases by adding more nodes
 - **Low Gas Fees**: Consistently low transaction costs paid in SHM
 - **EVM Compatible**: Deploy existing Ethereum dApps easily
 - **Fast Finality**: Quick transaction confirmations
