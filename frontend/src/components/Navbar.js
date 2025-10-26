@@ -99,7 +99,7 @@ function Navbar() {
       
       <div className="nav-links">
         <Link to="/quests">Quests</Link>
-        <Link to="/leaderboard">Leaderboard</Link>
+        {/* <Link to="/leaderboard">Leaderboard</Link> */}
         {account && <Link to="/profile">Profile</Link>}
         
         {account ? (
