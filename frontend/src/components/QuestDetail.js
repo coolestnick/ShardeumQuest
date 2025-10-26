@@ -233,6 +233,24 @@ function QuestDetail() {
     // Start global transaction loader
     startTransaction(`Completing quest: ${quest.title}`, 'Preparing transaction...');
 
+    // Double-check completion status before proceeding
+    try {
+      const statusCheck = await axios.get(
+        `${API_BASE_URL}/api/public/progress/quest/${id}/status?walletAddress=${account}`
+      );
+      if (statusCheck.data.completed) {
+        setIsQuestCompleted(true);
+        completeTransaction();
+        setIsCompleting(false);
+        alert('This quest is already completed!');
+        window.location.href = '/quests';
+        return;
+      }
+    } catch (statusError) {
+      console.error('Error checking quest status:', statusError);
+      // Continue anyway - don't block on status check failure
+    }
+
     try {
       // First complete on blockchain
       const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS || '0x1169Ea80acD04e4379a72e54Dd4B1810e31efC14';
@@ -275,10 +293,11 @@ function QuestDetail() {
             }
           );
         } catch (backendError) {
-          console.warn('Backend update failed (possibly already completed):', backendError);
           // Continue anyway - the blockchain transaction succeeded
           const errorMessage = backendError.response?.data?.error || '';
-          if (!errorMessage.toLowerCase().includes('already completed')) {
+          if (errorMessage.toLowerCase().includes('already completed')) {
+            console.log('Quest already completed on backend, continuing with success flow');
+          } else {
             console.error('Unexpected backend error:', errorMessage);
           }
         }
@@ -320,18 +339,25 @@ function QuestDetail() {
           // Force refresh user progress
           window.location.href = '/quests';
         } catch (backendError) {
-          console.error('Backend update also failed:', backendError);
-
-          // Complete the transaction loader
-          completeTransaction();
-
           // Check if it's a "Quest already completed" error
           const errorMessage = backendError.response?.data?.error || backendError.message;
+
           if (errorMessage && errorMessage.toLowerCase().includes('already completed')) {
             // Quest was already completed - this is actually a success!
+            console.log('Quest already completed on backend, treating as success');
             setIsQuestCompleted(true);
+
+            // Complete the transaction loader
+            completeTransaction();
+
             alert(`Quest completed! Transaction: ${tx.hash.slice(0,10)}...`);
           } else {
+            // Only log actual errors
+            console.error('Backend update failed:', backendError);
+
+            // Complete the transaction loader
+            completeTransaction();
+
             alert(`Transaction sent (${tx.hash.slice(0,10)}...) but backend update failed. Please refresh to see your progress.`);
           }
 
