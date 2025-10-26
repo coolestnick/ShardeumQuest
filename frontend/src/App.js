@@ -5,7 +5,7 @@ import Home from './components/Home';
 import Quests from './components/Quests';
 import QuestDetail from './components/QuestDetail';
 import Profile from './components/Profile';
-import Leaderboard from './components/Leaderboard';
+// import Leaderboard from './components/Leaderboard';
 import Navbar from './components/Navbar';
 import NetworkHelper from './components/NetworkHelper';
 import TransactionLoader from './components/TransactionLoader';
@@ -28,7 +28,6 @@ function App() {
               <Route path="/quests" element={<Quests />} />
               <Route path="/quest/:id" element={<QuestDetail />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
             </Routes>
           </div>
         </Router>
