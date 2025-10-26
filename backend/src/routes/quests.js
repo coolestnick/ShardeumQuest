@@ -19,7 +19,7 @@ const quests = [
     id: 2,
     title: "ERC-20 Token Expert",
     description: "Master ERC-20 tokens and learn to deploy them on Shardeum",
-    xpReward: 150,
+    xpReward: 100,
     steps: [
       { id: "erc20-docs", title: "Read: ERC-20 Token Standard Documentation" },
       { id: "token-deployment", title: "Read: How to Deploy ERC-20 Smart Contracts using Truffle" },
@@ -30,7 +30,7 @@ const quests = [
     id: 3,
     title: "DeFi Vault Builder",
     description: "Learn to build and deploy DeFi vaults for token staking",
-    xpReward: 200,
+    xpReward: 100,
     steps: [
       { id: "vault-tutorial", title: "Read: Build and Deploy an ERC20 Vault on Shardeum" },
       { id: "bank-contract", title: "Read: How to Deploy a Bank Smart Contract Using Solidity" },
@@ -41,7 +41,7 @@ const quests = [
     id: 4,
     title: "Multi-Token Standards Master",
     description: "Explore advanced token standards beyond ERC-20",
-    xpReward: 250,
+    xpReward: 100,
     steps: [
       { id: "erc721-docs", title: "Read: ERC-721 Token Standard Documentation" },
       { id: "erc1155-guide", title: "Read: What is ERC-1155?" },
@@ -52,7 +52,7 @@ const quests = [
     id: 5,
     title: "Web3 Career Strategist",
     description: "Understand career opportunities in the Web3 and DeFi space",
-    xpReward: 300,
+    xpReward: 100,
     steps: [
       { id: "web3-careers", title: "Read: Career Opportunities in Web3 - A Detailed Guide" },
       { id: "developer-path", title: "Explore blockchain developer career paths" },
