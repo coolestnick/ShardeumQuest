@@ -16,7 +16,7 @@ function Profile() {
     { id: 1, name: 'DeFi Novice', description: 'Complete your first quest', requiredXP: 100 },
     { id: 2, name: 'Token Scholar', description: 'Earn 500 XP', requiredXP: 500 },
     { id: 3, name: 'Liquidity Expert', description: 'Earn 1000 XP', requiredXP: 1000 },
-    { id: 4, name: 'DeFi Master', description: 'Complete all quests', requiredXP: 2000 }
+    { id: 4, name: 'DeFi Master', description: 'Complete all quests', requiredXP: 500 }
   ];
 
   useEffect(() => {
