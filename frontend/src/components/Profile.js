@@ -14,8 +14,8 @@ function Profile() {
 
   const achievements = [
     { id: 1, name: 'DeFi Novice', description: 'Complete your first quest', requiredXP: 100 },
-    { id: 2, name: 'Token Scholar', description: 'Earn 500 XP', requiredXP: 500 },
-    { id: 3, name: 'Liquidity Expert', description: 'Earn 1000 XP', requiredXP: 1000 },
+    { id: 2, name: 'Token Scholar', description: 'Earn 200 XP', requiredXP: 200 },
+    { id: 3, name: 'Liquidity Expert', description: 'Earn 300 XP', requiredXP: 300 },
     { id: 4, name: 'DeFi Master', description: 'Complete all quests', requiredXP: 500 }
   ];
 
