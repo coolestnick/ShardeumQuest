@@ -17,6 +17,7 @@ function QuestDetail() {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   // Helper function to parse inline markdown (bold, italic, etc.)
   const parseInlineMarkdown = (text) => {
@@ -221,6 +222,14 @@ function QuestDetail() {
       return;
     }
 
+    // Prevent double-clicking
+    if (isCompleting || isQuestCompleted) {
+      alert('Quest completion already in progress or completed');
+      return;
+    }
+
+    setIsCompleting(true);
+
     // Start global transaction loader
     startTransaction(`Completing quest: ${quest.title}`, 'Preparing transaction...');
 
@@ -256,20 +265,32 @@ function QuestDetail() {
         );
 
         // Update backend with blockchain verification
-        await axios.post(
-          `${API_BASE_URL}/api/public/progress/complete/${id}`,
-          { 
-            walletAddress: account,
-            transactionHash: receipt.transactionHash,
-            blockchainVerified: true 
+        try {
+          await axios.post(
+            `${API_BASE_URL}/api/public/progress/complete/${id}`,
+            {
+              walletAddress: account,
+              transactionHash: receipt.transactionHash,
+              blockchainVerified: true
+            }
+          );
+        } catch (backendError) {
+          console.warn('Backend update failed (possibly already completed):', backendError);
+          // Continue anyway - the blockchain transaction succeeded
+          const errorMessage = backendError.response?.data?.error || '';
+          if (!errorMessage.toLowerCase().includes('already completed')) {
+            console.error('Unexpected backend error:', errorMessage);
           }
-        );
+        }
+
+        // Mark quest as completed to prevent re-attempts
+        setIsQuestCompleted(true);
 
         // Complete the transaction loader
         completeTransaction();
 
         alert(`Quest completed! You earned ${quest.xpReward} XP!\nTransaction: ${receipt.transactionHash.slice(0,10)}...`);
-        
+
         // Force refresh user progress
         window.location.href = '/quests';
       } catch (waitError) {
@@ -307,6 +328,8 @@ function QuestDetail() {
           // Check if it's a "Quest already completed" error
           const errorMessage = backendError.response?.data?.error || backendError.message;
           if (errorMessage && errorMessage.toLowerCase().includes('already completed')) {
+            // Quest was already completed - this is actually a success!
+            setIsQuestCompleted(true);
             alert(`Quest completed! Transaction: ${tx.hash.slice(0,10)}...`);
           } else {
             alert(`Transaction sent (${tx.hash.slice(0,10)}...) but backend update failed. Please refresh to see your progress.`);
@@ -318,14 +341,19 @@ function QuestDetail() {
       }
     } catch (error) {
       console.error('Error completing quest:', error);
-      
+
       // Complete the transaction loader
       completeTransaction();
-      
+
+      // Re-enable button on error
+      setIsCompleting(false);
+
       if (error.code === 4001) {
         alert('Transaction rejected by user');
       } else if (error.message.includes('Quest already completed')) {
+        setIsQuestCompleted(true);
         alert('Quest already completed on blockchain');
+        window.location.href = '/quests';
       } else {
         alert(`Failed to complete quest: ${error.message || error}`);
       }
@@ -416,12 +444,17 @@ function QuestDetail() {
             </div>
 
             {completedSteps.length === quest.steps.length && (
-              <button 
-                className="cta-button" 
+              <button
+                className="cta-button"
                 onClick={completeQuest}
-                style={{ marginTop: '2rem' }}
+                disabled={isCompleting || isQuestCompleted}
+                style={{
+                  marginTop: '2rem',
+                  opacity: (isCompleting || isQuestCompleted) ? 0.5 : 1,
+                  cursor: (isCompleting || isQuestCompleted) ? 'not-allowed' : 'pointer'
+                }}
               >
-                {`Complete Quest (${quest.xpReward} XP)`}
+                {isCompleting ? 'Completing...' : `Complete Quest (${quest.xpReward} XP)`}
               </button>
             )}
           </>
