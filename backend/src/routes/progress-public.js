@@ -423,10 +423,10 @@ router.post('/complete/:questId', async (req, res) => {
     // Get the actual quest XP reward from quests data
     const questsData = [
       { id: 1, xpReward: 100 },
-      { id: 2, xpReward: 150 },
-      { id: 3, xpReward: 200 },
-      { id: 4, xpReward: 250 },
-      { id: 5, xpReward: 300 }
+      { id: 2, xpReward: 100 },
+      { id: 3, xpReward: 100 },
+      { id: 4, xpReward: 100 },
+      { id: 5, xpReward: 100 }
     ];
 
     const quest = questsData.find(q => q.id === parseInt(questId));
